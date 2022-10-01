@@ -21,10 +21,10 @@ cp "/proc/${pid}/maps" /home/marsen/os/lab1/process_map
 
 kill $pid
 
-python3 draw_cpu_plot.py io_log
-python3 draw_io_plot.py io_log
 python3 count_sub_processes.py
 python3 get_sent_data.py all_log
+python3 draw_cpu_plot.py cpu_log
+python3 draw_io_plot.py io_log
 
 ./clear
 ./clear_trace

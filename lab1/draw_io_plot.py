@@ -18,7 +18,6 @@ with open(logfile, 'r') as fw:
 fw.close()
 
 cpu_plot = pd.DataFrame({"read" : reads, "write" : writes, "time" : times})
-print(cpu_plot)
 cpu_plot['time'] = pd.to_datetime(cpu_plot['time'], format='%H:%M:%S')
 
 
