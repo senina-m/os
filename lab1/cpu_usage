@@ -1,0 +1,21 @@
+#!/bin/bash
+PNAME="$1"
+LOG_FILE="$2"
+# TIME="$3"
+DELAY=0.1
+# ITERATIONS=$(bc<<<"scale=3;$TIME/$DELAY")
+
+# ./277087 &
+
+# for i in $(seq 0 1 $ITERATIONS)
+while true
+do
+    echo "$(date) :: $PNAME[$(pidof ${PNAME})] $(ps -C ${PNAME} -o %cpu  | tail -1)%" >> $LOG_FILE
+    sleep $DELAY
+done
+
+python3 draw_cpu_plot.py "$LOG_FILE"
+
+# pid=$(pidof 277087)
+# kill $pid
+# ./clear

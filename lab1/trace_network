@@ -1,0 +1,14 @@
+#bin/bash 
+rm  network_log
+rm sent_data
+
+strace -tt -f -o network_log -e trace=network ./277087 2>&1 & 
+
+sleep 40
+
+pid=$(pidof 277087)
+kill $pid
+
+python3 get_sent_data.py "network_log"
+
+./clear

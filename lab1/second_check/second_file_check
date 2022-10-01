@@ -1,0 +1,18 @@
+#/bin/bash
+./277087 &
+pid=$(pidof 277087)
+echo "Programm pid: \"${pid}\"." >> log
+echo "Programm pid: \"${pid}\"."
+for (( i = 0 ; i < 3 ; i++ ))
+do
+   sleep 1
+   time=$(date +"%T")
+   echo "------------${i}, $time----------- lab1" >> log
+
+   files=$(lsof -p $pid)
+   echo "${files}"  >> log
+done
+
+kill $pid
+sed -i '/lab1/!d' log
+./clear

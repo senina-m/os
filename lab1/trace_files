@@ -1,0 +1,16 @@
+#bin/bash 
+rm all_log
+rm process_log
+rm file_log
+
+strace -r -tt -y -o log_trace -ff -e trace=open,openat,close,read,write,connect,accept ./277087 & 
+
+sleep 3
+
+pid=$(pidof 277087)
+kill $pid
+
+python3 count_sub_processes.py
+
+./clear
+./clear_trace

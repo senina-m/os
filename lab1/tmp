@@ -1,0 +1,11 @@
+#bin/bash 
+strace -e trace=open,openat,close,read,write,connect,accept,network ./277087 &
+sleep 3
+
+pid=$(pidof 277087)
+echo "pid = $pid"
+
+
+kill $pid
+
+./clear

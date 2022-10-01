@@ -1,0 +1,16 @@
+------------0, 22:48:50----------- lab1
+277087  3924 marsen  cwd    DIR    8,3      4096 659190 /home/marsen/os/lab1
+277087  3924 marsen  txt    REG    8,3    248752 393308 /home/marsen/os/lab1/277087
+277087  3924 marsen    4w   REG    8,3 110100480 659248 /home/marsen/os/lab1/9504851566305016908
+277087  3924 marsen    8w   REG    8,3 110100480 659249 /home/marsen/os/lab1/10951984366892587181
+277087  3924 marsen   14w   REG    8,3 110100480 659245 /home/marsen/os/lab1/15418334230916946591
+277087  3924 marsen   15w   REG    8,3 110100480 659247 /home/marsen/os/lab1/11928530674501926595
+------------1, 22:48:51----------- lab1
+277087  3924 marsen  cwd    DIR    8,3     4096 659190 /home/marsen/os/lab1
+277087  3924 marsen  txt    REG    8,3   248752 393308 /home/marsen/os/lab1/277087
+------------2, 22:48:52----------- lab1
+277087  3924 marsen  cwd    DIR    8,3     4096 659190 /home/marsen/os/lab1
+277087  3924 marsen  txt    REG    8,3   248752 393308 /home/marsen/os/lab1/277087
+------------0, 23:19:58----------- lab1
+------------1, 23:19:59----------- lab1
+------------2, 23:20:00----------- lab1

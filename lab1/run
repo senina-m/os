@@ -1,0 +1,30 @@
+#bin/bash 
+rm all_log
+rm process_log
+rm file_log
+rm network_log
+rm sent_data
+rm process_map
+rm cpu_log
+rm io_log
+
+strace -r -tt -y -o log_trace -ff -e trace=open,openat,close,read,write,connect,accept,network ./277087 &
+
+./cpu_usage 277087 cpu_log &
+sudo iotop -aobt >> io_log &
+
+sleep 5
+
+pid=$(pidof 277087)
+echo "pid = $pid"
+cp "/proc/${pid}/maps" /home/marsen/os/lab1/process_map
+
+kill $pid
+
+python3 draw_cpu_plot.py io_log
+python3 draw_io_plot.py io_log
+python3 count_sub_processes.py
+python3 get_sent_data.py all_log
+
+./clear
+./clear_trace

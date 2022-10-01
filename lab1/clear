@@ -1,0 +1,2 @@
+#!/bin/bash
+find . -regextype sed -regex "^\./[0-9]\{19,20\}" -exec rm {} \;
