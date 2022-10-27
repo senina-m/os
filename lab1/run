@@ -7,24 +7,44 @@ rm sent_data
 rm process_map
 rm cpu_log
 rm io_log
+rm network_m_log
+rm threads_log
 
-strace -r -tt -y -o log_trace -ff -e trace=open,openat,close,read,write,connect,accept,network ./277087 &
-
-./cpu_usage 277087 cpu_log &
-sudo iotop -aobt >> io_log &
-
-sleep 5
-
-pid=$(pidof 277087)
+./277087 &
+pid=$!
 echo "pid = $pid"
+
+# strace -r -tt -y -o log_trace -ff -e trace=open,openat,close,read,write,connect,accept,network ./277087 & #when strace run program itself
+strace -r -tt -y -o log_trace -ff -e trace=open,openat,close,read,write,connect,accept,network -p $pid &
+
+./cpu_usage 277087 cpu_log & #cpu monitoring
+cpu_pid=$!
+#also we can monitor io by checking proc/pid/io
+sudo iotop -aobt >> io_log & #io monitoring
+io_pid=$!
+./monitor_network network_m_log $pid &
+network_pid=$!
+./threads_changes /home/marsen/os/lab1/threads_log $pid &
+threas_pid=$!
+
+
+sleep 3
+pid=$(pidof 277087)
+
 cp "/proc/${pid}/maps" /home/marsen/os/lab1/process_map
 
 kill $pid
+kill $cpu_pid
+kill $io_pid
+kill $network_pid
+kill $threas_pid
 
 python3 count_sub_processes.py
 python3 get_sent_data.py all_log
 python3 draw_cpu_plot.py cpu_log
 python3 draw_io_plot.py io_log
+python3 draw_network_plot.py network_m_log
+python3 draw_threads.py threads_log
 
 ./clear
 ./clear_trace
