@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "path.h": "c",
+        "dcache.h": "c",
+        "module.h": "c",
+        "fs.h": "c",
+        "dm-dirty-log.h": "c",
+        "mm_types.h": "c",
+        "unistd.h": "c",
+        "vmalloc.h": "c",
+        "ioctl.h": "c"
+    }
+}

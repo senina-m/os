@@ -28,7 +28,7 @@ network_pid=$!
 threas_pid=$!
 
 
-sleep 3
+sleep 30
 pid=$(pidof 277087)
 
 cp "/proc/${pid}/maps" /home/marsen/os/lab1/process_map

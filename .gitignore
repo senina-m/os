@@ -7,3 +7,12 @@ lab1/process_map
 lab1/cpu_log
 lab1/io_log
 lab1/io
+lab1/network_m_log
+lab2/.vscode
+lab2/src/*.cmd
+lab2/src/*.mod.c
+lab2/src/*.mod
+lab2/src/*.o
+lab2/src/*.symvers
+lab2/src/*.order
+lab2/src/u
