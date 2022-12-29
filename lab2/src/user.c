@@ -10,6 +10,8 @@
 
 static void print_cputimer(struct my_cputimer* ct){
         printf("CPUTIMER: ");
+        if(ct->group_statistics) printf("GROUP:");
+        else printf("TASK:");
         printf("stime = %lld, ", ct->stime);
         printf("sum_exec_runtime = %lld, ", ct->sum_exec_runtime);
         printf("utime = %lld, ", ct->utime);
@@ -25,7 +27,11 @@ static void print_dentry(struct my_dentry* md) {
 
 static void print_answer(struct answer* a){
         printf("resived:\n");
+        if (a->cputimer == sucsess) printf("sucsess: ");
+        else printf("fail: ");
         print_cputimer(&(a->ct));
+        if (a->dentry == sucsess) printf("sucsess: ");
+        else printf("fail: ");
         print_dentry(&(a->md));
         printf("s_d=%i, s_c=%i\n", (int) a->dentry, (int) a->cputimer);
 }

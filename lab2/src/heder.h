@@ -15,6 +15,7 @@ struct my_cputimer{
         signed long long utime;
 	signed long long stime;
 	signed long long sum_exec_runtime;
+        unsigned int group_statistics;
 };
  
 enum status {sucsess=0, failed};

@@ -12,12 +12,10 @@
 #include <linux/namei.h>
 #include <linux/vmalloc.h>
 #include <linux/sched/cputime.h>
+
 #include "heder.h"
 
 MODULE_LICENSE("GPL"); 
-
-
-int32_t value = 0;
 
 dev_t dev = 0;
 static struct class *dev_class;
@@ -49,10 +47,13 @@ static ssize_t my_driver_write(struct file *filp, const char __user *buf, size_t
 }
 
 static void print_cputimer(struct my_cputimer* ct){
-        pr_info("CPUTIMER:");
+        pr_info("CPUTIMER ");
+        if(ct->group_statistics) pr_info("GROUP:");
+        else pr_info("TASK:");
         pr_info("stime = %lld, ", ct->stime);
         pr_info("sum_exec_runtime = %lld, ", ct->sum_exec_runtime);
         pr_info("utime = %lld, ", ct->utime);
+        pr_info("group = %i, ", ct->group_statistics);
         pr_info("\n");
 }
 
@@ -64,7 +65,7 @@ static void print_dentry(struct my_dentry* md) {
 }
 
 static void print_answer(struct answer* a){
-        pr_info("going to send:");
+        pr_info("\ngoing to send:");
         print_cputimer(&(a->ct));
         print_dentry(&(a->md));
         pr_info("s_d=%i, s_c=%i\n", (int) a->dentry, (int) a->cputimer);
@@ -72,6 +73,7 @@ static void print_answer(struct answer* a){
 
 int pid;
 char path_arg[BUFFER_SIZE];
+u64 samples[3];
 
 static long my_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -90,6 +92,7 @@ static long my_driver_ioctl(struct file *file, unsigned int cmd, unsigned long a
                 case WR_PID_VALUE: // получаем путь от пользователя
                         if (copy_from_user(&pid, (int *) arg, sizeof(pid))) pr_err("PID write error!\n");
                         pr_info("pid = %d\n", pid);
+
                         break;
                 case RD_VALUE:
                         //find dentry
@@ -106,18 +109,12 @@ static long my_driver_ioctl(struct file *file, unsigned int cmd, unsigned long a
                         }else{
                                 a->dentry = failed;
                         }
-
-
                         //get task_struct by pid
                         task = get_pid_task(find_get_pid(pid), PIDTYPE_PID);
-                        if(!task) pr_info("task is null");
-
-                        //get cputimer by task_struct
-                        //check if timers were active
-                        if (!READ_ONCE(task->signal->posix_cputimers.timers_active) || unlikely(!task->sighand)){
-                                pr_info("cpu timers are inactive");
+                        if(!task) {
+                                pr_info("task is null");
                                 a->cputimer = failed;
-                        } else {
+                        }else{
                                 cputimer = &task->signal->cputimer;
                                 pr_info("cpu_timer = %p", cputimer);
 
@@ -125,7 +122,14 @@ static long my_driver_ioctl(struct file *file, unsigned int cmd, unsigned long a
                                         a->ct.stime = (long long)(cputimer->cputime_atomic.stime.counter);
                                         a->ct.utime = (long long)(cputimer->cputime_atomic.utime.counter);
                                         a->ct.sum_exec_runtime = (long long) (cputimer->cputime_atomic.sum_exec_runtime.counter);
+                                        a->ct.group_statistics = true;
+                                        a->cputimer = sucsess;
                                         pr_info("cputimer copied");
+                                }else{
+                                        a->ct.stime = (long long) task->stime;
+                                        a->ct.utime = (long long) task->utime;
+                                        a->ct.sum_exec_runtime = (long long) task->last_sum_exec_runtime;
+                                        a->ct.group_statistics = false;
                                         a->cputimer = sucsess;
                                 }
                         }
