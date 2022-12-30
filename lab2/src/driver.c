@@ -5,8 +5,8 @@
 #include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
-#include <linux/slab.h>                 //kmalloc()
-#include <linux/uaccess.h>              //copy_to/from_user()
+#include <linux/slab.h>         //kmalloc()
+#include <linux/uaccess.h>      //copy_to/from_user()
 #include <linux/ioctl.h>
 #include <linux/err.h>
 #include <linux/namei.h>
@@ -71,76 +71,57 @@ static void print_answer(struct answer* a){
         pr_info("s_d=%i, s_c=%i\n", (int) a->dentry, (int) a->cputimer);
 }
 
-int pid;
-char path_arg[BUFFER_SIZE];
-u64 samples[3];
 
-static long my_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-{
-        struct answer* a = vmalloc(sizeof(struct answer));
-        struct task_struct *task;
-        struct thread_group_cputimer *cputimer;
-        struct path path;
-        int err;
+static long my_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg){     
 
-        switch(cmd) {
-                case WR_PATH_VALUE: // получаем путь от пользователя
-                        if( copy_from_user(path_arg, (char *) arg, BUFFER_SIZE)) pr_err("PATH write error!\n");
-                        pr_info("PATH = %s\n", path_arg);
-                        // заполняем struct path найденными по пути данными
-                        break;
-                case WR_PID_VALUE: // получаем путь от пользователя
-                        if (copy_from_user(&pid, (int *) arg, sizeof(pid))) pr_err("PID write error!\n");
-                        pr_info("pid = %d\n", pid);
+        if(cmd == RW_VALUE){
+                struct answer* a = vmalloc(sizeof(struct answer));
+                if( copy_from_user(a, (struct answer *) arg, sizeof(struct answer))) pr_err("Can't read answer!\n");
+                pr_info("PATH = %s\n", a->path);
+                pr_info("PID = %i\n", a->pid);
+                
+                //find dentry
+                struct path path;
+                int err = kern_path(a->path, LOOKUP_FOLLOW, &path);
+                pr_info("Looking up for path end with: %i", err);
+                if(!err){
+                        a->md.d_flags = path.dentry->d_flags;
+                        strncpy(a->md.d_iname, path.dentry->d_iname, DNAME_INLINE_LEN);
+                        a->dentry = sucsess;
+                        pr_info("dentry copied");
+                }else{
+                        a->dentry = failed;
+                }
 
-                        break;
-                case RD_VALUE:
-                        //find dentry
-                        // bytes = strlen(path_arg);
-                        // if(path_arg[bytes - 1] == '\n')
-                        // path_arg[bytes - 1] = '\0';
-                        err = kern_path(path_arg, LOOKUP_FOLLOW, &path);
-                        pr_info("Looking up for path end with: %i", err);
-                        if(!err){
-                                a->md.d_flags = path.dentry->d_flags;
-                                strncpy(a->md.d_iname, path.dentry->d_iname, DNAME_INLINE_LEN); 
-                                a->dentry = sucsess;
-                                pr_info("dentry copied");
+                //get task_struct by pid
+                struct task_struct* task = get_pid_task(find_get_pid(a->pid), PIDTYPE_PID);
+                if(!task) {
+                        pr_info("task is null");
+                        a->cputimer = failed;
+                }else{
+                        struct thread_group_cputimer *cputimer;
+                        cputimer = &task->signal->cputimer;
+                        pr_info("cpu_timer = %p", cputimer);
+
+                        if(cputimer !=NULL){
+                                a->ct.stime = (long long)(cputimer->cputime_atomic.stime.counter);
+                                a->ct.utime = (long long)(cputimer->cputime_atomic.utime.counter);
+                                a->ct.sum_exec_runtime = (long long) (cputimer->cputime_atomic.sum_exec_runtime.counter);
+                                a->ct.group_statistics = true;
+                                a->cputimer = sucsess;
+                                pr_info("cputimer copied");
                         }else{
-                                a->dentry = failed;
+                                a->ct.stime = (long long) task->stime;
+                                a->ct.utime = (long long) task->utime;
+                                a->ct.sum_exec_runtime = (long long) task->last_sum_exec_runtime;
+                                a->ct.group_statistics = false;
+                                a->cputimer = sucsess;
                         }
-                        //get task_struct by pid
-                        task = get_pid_task(find_get_pid(pid), PIDTYPE_PID);
-                        if(!task) {
-                                pr_info("task is null");
-                                a->cputimer = failed;
-                        }else{
-                                cputimer = &task->signal->cputimer;
-                                pr_info("cpu_timer = %p", cputimer);
-
-                                if(cputimer !=NULL){
-                                        a->ct.stime = (long long)(cputimer->cputime_atomic.stime.counter);
-                                        a->ct.utime = (long long)(cputimer->cputime_atomic.utime.counter);
-                                        a->ct.sum_exec_runtime = (long long) (cputimer->cputime_atomic.sum_exec_runtime.counter);
-                                        a->ct.group_statistics = true;
-                                        a->cputimer = sucsess;
-                                        pr_info("cputimer copied");
-                                }else{
-                                        a->ct.stime = (long long) task->stime;
-                                        a->ct.utime = (long long) task->utime;
-                                        a->ct.sum_exec_runtime = (long long) task->last_sum_exec_runtime;
-                                        a->ct.group_statistics = false;
-                                        a->cputimer = sucsess;
-                                }
-                        }
-                        print_answer(a);
-                        if (copy_to_user((struct answer *) arg, a, sizeof(struct answer))) pr_err("Data read error!\n");
-                        break;
-                default:
-                        pr_info("Default\n");
-                        break;
+                }
+                print_answer(a);
+                if (copy_to_user((struct answer *) arg, a, sizeof(struct answer))) pr_err("Data read error!\n");                
+                vfree(a);
         }
-        vfree(a);
         return 0;
 }
 

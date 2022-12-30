@@ -1,6 +1,4 @@
-#define WR_PATH_VALUE _IOW('a','a',char*)
-#define WR_PID_VALUE _IOW('a','b',int32_t*)
-#define RD_VALUE _IOR('a','c',struct answer*)
+#define RW_VALUE _IOR('a', 'a', struct answer*)
 
 #define BUFFER_SIZE 1024
 #define DEVICE_NAME "AAAAAAAA"
@@ -21,8 +19,10 @@ struct my_cputimer{
 enum status {sucsess=0, failed};
 
 struct answer {
-    struct my_dentry md;
-    struct my_cputimer ct;
-    enum status dentry;
-    enum status cputimer;
+        struct my_dentry md;
+        struct my_cputimer ct;
+        enum status dentry;
+        enum status cputimer;
+        char* path;
+        int32_t pid;
 };

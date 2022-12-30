@@ -33,7 +33,7 @@ static void print_answer(struct answer* a){
         if (a->dentry == sucsess) printf("sucsess: ");
         else printf("fail: ");
         print_dentry(&(a->md));
-        printf("s_d=%i, s_c=%i\n", (int) a->dentry, (int) a->cputimer);
+        // printf("s_d=%i, s_c=%i\n", (int) a->dentry, (int) a->cputimer);
 }
  
 int main(int argc, char *argv[]){
@@ -58,12 +58,10 @@ int main(int argc, char *argv[]){
             return 0;
         }
 
-        // Writing a pid to driver
-        ioctl(fd, WR_PID_VALUE, (int32_t *) &pid);
-        // Writing a path to driver
-        ioctl(fd, WR_PATH_VALUE, (char*) path);
-        // Reading a value from driver
-        ioctl(fd, RD_VALUE, (struct answer *) &answer);
+        answer.path = path;
+        answer.pid = pid;
+
+        ioctl(fd, RW_VALUE, (struct answer *) &answer);
         
         print_answer(&answer);
 
